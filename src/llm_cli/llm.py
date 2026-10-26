@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 from openai import OpenAI
 from .config import Settings
+from .errors import LLMError
 
 @dataclass
 class Completion:
@@ -21,10 +22,10 @@ def _pick(value: Any, default: Any)-> Any:
 
 class LLMClient:
     def __init__(self, settings:Settings, client: Any | None = None)-> None:
-        self.settings = Settings
+        self.settings = settings
         self.client = client or OpenAI(
             api_key = settings.api_key,
-            model = settings.model,
+            base_url = settings.base_url,
             timeout = settings.timeout,
             max_retries = settings.max_retries,
         )
@@ -42,7 +43,7 @@ class LLMClient:
                 model = model or self.settings.model,
                 messages = messages,
                 temperature = _pick(temperature, self.settings.temperature),
-                max_tokens = _pick(self.settings.max_tokens),
+                max_tokens = _pick(max_tokens, self.settings.max_tokens),
             )
         except Exception as exc:
             # 捕获所有异常，统一包成 LLMError。
@@ -51,7 +52,7 @@ class LLMClient:
 
         if not getattr(response, "choices", None):
             raise LLMError("LLM returned no choices")
-        usage = getattr(response, "uasge", None)
+        usage = getattr(response, "usage", None)
         
         return Completion(
             content = response.choices[0].message.content or "",

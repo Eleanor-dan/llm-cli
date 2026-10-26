@@ -54,10 +54,10 @@ def read_prompt(args: argparse.Namespace)-> str:
     if args.file:
         return Path(args.file).read_text(encoding= "utf-8")
     if args.prompt:
-        text = "".join(args.prompt)
+        text = " ".join(args.prompt)
         return sys.stdin.read() if text == "-" else text
     if not sys.stdin.isatty():
-        return sys.stdin().read()
+        return sys.stdin.read()
     return ""
 
 def _overrides(args: argparse.Namespace) -> dict[str, Any]:
@@ -86,7 +86,7 @@ def main(
     except FileNotFoundError:
         err_console.print(f"[red]File not found: {args.file}[/red]")
         return 2
-    except OSError:
+    except OSError as exc:
         err_console.print(f"[red]Cannot read input: {exc}[/red]")
         return 2
     if not prompt:
@@ -104,7 +104,7 @@ def main(
     try:
 
         completion: Completion = client.complete(messages, **overrides)
-        cost = estimate_cost(completion.model, completion.prompt_tokens,completion.completion_tokens)\
+        cost = estimate_cost(completion.model, completion.prompt_tokens,completion.completion_tokens)
 
         if args.json:
             _print_json(

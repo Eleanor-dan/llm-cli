@@ -4,11 +4,16 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "openai>=1.40",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "rich>=13.7",
+]
 
 [project.scripts]
-llm-cli = "llm_cli:main"
-llm_cli = "llm_cli:main"
+llm-cli = "llm_cli.cli:main"
+llm_cli = "llm_cli.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.13.5,<0.14.0"]

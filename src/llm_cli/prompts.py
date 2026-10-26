@@ -4,7 +4,7 @@ Message = dict[str, str]
 
 def build_messages(prompt: str, system: str | None = None) ->list[Message]:
     if not prompt.strip():
-        raise ValueError("propmt must not be empty")
+        raise ValueError("prompt must not be empty")
 
     messages: list[Message] = []
 
