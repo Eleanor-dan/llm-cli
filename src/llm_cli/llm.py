@@ -34,7 +34,7 @@ class LLMClient:
             self,
             messages: list[dict[str,str]],
             *,
-            model: str,
+            model: str | None = None,
             temperature: float | None = None,
             max_tokens: int | None = None,
     ) -> Completion:

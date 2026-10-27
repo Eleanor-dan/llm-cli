@@ -45,6 +45,7 @@ def build_args()-> argparse.ArgumentParser:
     parser.add_argument("--stream", action="store_true", help="Stream tokens as they arrive.")
     parser.add_argument("--json", action="store_true", help="Print a JSON object.")
     parser.add_argument("--debug", action="store_true", help="Print usage and debug logs.")
+    parser.add_argument("--show_config", action="store_true", help="Print resolved config and exit." )
 
     # action="version" 会在打印版本后自动退出程序。
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -110,13 +111,13 @@ def main(
             _print_json(
                 {
                     "content": completion.content,
-                        "model": completion.model,
-                        "usage": {
-                            "prompt_tokens": completion.prompt_tokens,
-                            "completion_tokens": completion.completion_tokens,
-                            "total_tokens": completion.total_tokens,
-                        },
-                        "cost_usd": cost,
+                    "model": completion.model,
+                    "usage": {
+                        "prompt_tokens": completion.prompt_tokens,
+                        "completion_tokens": completion.completion_tokens,
+                        "total_tokens": completion.total_tokens,
+                    },
+                    "cost_usd": cost,
                 }
             )
         else:

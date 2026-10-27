@@ -11,6 +11,12 @@ dependencies = [
     "rich>=13.7",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.5",
+]
+
 [project.scripts]
 llm-cli = "llm_cli.cli:main"
 llm_cli = "llm_cli.cli:main"

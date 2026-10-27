@@ -4,14 +4,9 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# 优先读取项目根目录的 .env，其次读取当前工作目录的 .env。
-# 这样无论从哪个目录运行 llm-cli，都能找到项目的配置。
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_ENV_FILES = (_PROJECT_ROOT / ".env", Path.cwd() / ".env")
-
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file = _ENV_FILES,
+        env_file = ".env",
         env_file_encoding = 'utf-8',
         env_prefix = 'LLM_',
         extra = "ignore",
