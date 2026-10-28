@@ -60,3 +60,33 @@ class LLMClient:
             prompt_tokens= getattr(usage, "prompt_tokens", 0) if usage else 0,
             completion_tokens= getattr(usage, "completion_tokens", 0) if usage else 0,
         )
+
+    def stream(
+          self,
+          messages: list[dict[str,str]],  
+          *, 
+          model: str | None = None,
+          temperature: float | None = None,
+          max_tokens: int | None = None,  
+    ) -> Iterator[str]:
+        try:
+            response = self.client.chat.completions.create(
+                model = model or self.settings.model,
+                messages = messages,
+                temperature = _pick(temperature, self.settings.temperature),
+                max_tokens = _pick(max_tokens, self.settings.max_tokens),
+                stream=True,
+            )
+            for chunk in response:
+                choices = getattr(chunk, "choices", None)
+                if not choices:
+                    continue
+                delta = choices[0].delta
+                text = getattr(delta, "content", None) if delta else None
+                if text:
+                    yield text
+        except LLMError:
+            # 已经是我们的异常，直接往上抛，避免重复包装。
+            raise
+        except Exception as exc:
+            raise LLMError(f"LLM stream failed: {exc}") from exc

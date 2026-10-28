@@ -3,6 +3,7 @@ import argparse
 import json
 import logging
 import sys
+import time
 
 from collections.abc import Sequence
 from pathlib import Path
@@ -46,8 +47,6 @@ def build_args()-> argparse.ArgumentParser:
     parser.add_argument("--stream", action="store_true", help="Stream tokens as they arrive.")
     parser.add_argument("--json", action="store_true", help="Print a JSON object.")
     parser.add_argument("--debug", action="store_true", help="Print usage and debug logs.")
-    parser.add_argument("--show_config", action="store_true", help="Print resolved config and exit." )
-
     # action="version" 会在打印版本后自动退出程序。
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
@@ -118,6 +117,39 @@ def main(
     overrides = _overrides(args)
     try:
 
+        if args.stream:
+            parts: list[str] = []
+            begin = time.perf_counter()
+            first_token: float | None = None
+            for delta in client.stream(messages, **overrides):
+                if first_token is None:
+                    first_token = time.perf_counter()
+                parts.append(delta)
+                if not args.json:
+                    console.print(
+                        delta,
+                        end="",
+                        markup=False,
+                        highlight=False,
+                        soft_wrap=True,
+                    )
+            if args.debug:
+                ttft_ms = (first_token - begin) * 1000 if first_token else 0.0
+                total_ms = (time.perf_counter() - begin) * 1000
+                err_console.print(f"[dim]TTFT={ttft_ms:.0f}ms total={total_ms:.0f}ms[/dim]")
+
+            text = "".join(parts)
+            if args.json:
+                _print_json(
+                    {
+                        "content": text,
+                        "model": args.model or settings.model,
+                    }
+                )
+            else:
+                console.print()
+            return 0
+
         completion: Completion = client.complete(messages, **overrides)
         cost = estimate_cost(completion.model, completion.prompt_tokens,completion.completion_tokens)
 
@@ -153,5 +185,4 @@ def main(
         # 用户按 Ctrl+C 时，Python 会抛 KeyboardInterrupt。
         err_console.print("\n[yellow]Interrupted.[/yellow]")
         return 130
-
 
