@@ -125,4 +125,23 @@ def test_llm_error_returns_exit_code(monkeypatch, capsys) -> None:
     assert code == 1
     assert "upstream is down" in captured.err
 
+def test_system_file(monkeypatch, capsys, tmp_path) -> None:
+    monkeypatch.setenv("LLM_API_KEY", "test")
+    system_file = tmp_path / "system.txt"
+    system_file.write_text("be brief", encoding="utf-8")
+
+    seen: dict = {}
+
+    class CapturingClient(FakeClient):
+        def complete(self, messages, **kwargs):
+            seen["messages"] = messages
+            return super().complete(messages, **kwargs)
+
+    code = main(
+        ["--system-file", str(system_file), "hi"],
+        client_factory=CapturingClient,
+    )
+
+    assert code == 0
+    assert seen["messages"][0] == {"role": "system", "content": "be brief"}
 

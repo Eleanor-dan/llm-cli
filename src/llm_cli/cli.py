@@ -37,6 +37,7 @@ def build_args()-> argparse.ArgumentParser:
 
     # -s / --system；不传时默认是 None。
     parser.add_argument("-s", "--system", help="System prompt.")
+    parser.add_argument("--system-file", help="System prompt file")
 
     parser.add_argument("-m", "--model", help="Override the model name.")
     parser.add_argument("-t", "--temperature", type=float, help="0.0 - 2.0")
@@ -84,6 +85,7 @@ def main(
 
     try:
         prompt = read_prompt(args).strip()
+        print(prompt)
     except FileNotFoundError:
         err_console.print(f"[red]File not found: {args.file}[/red]")
         return 2
@@ -94,12 +96,24 @@ def main(
         err_console.print("[red]No prompt. Pass text, --file, or pipe stdin.[/red]")
         return 2
 
+    if args.system and args.system_file:
+        err_console.print("[red]Use either --system or --system-file, not both.[/red]")
+        return 2
+    
+    system = args.system
+    if args.system_file:
+        try:
+            system = Path(args.system_file).read_text(encoding= "utf-8")
+        except OSError as exc:
+            err_console.print(f"[red]Cannot read system file: {exc}[/red]")
+            return 2
+
     settings = Settings()
     if not settings.api_key:
         err_console.print("[red]LLM_API_KEY is not set. Copy .env.example to .env.[/red]")
         return 2
 
-    messages = build_messages(prompt, system=args.system)
+    messages = build_messages(prompt, system=system)
     client = client_factory(settings)
     overrides = _overrides(args)
     try:
